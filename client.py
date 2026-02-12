@@ -1,31 +1,22 @@
 from socket import *
 import argparse
 
-SERVER_PORT = 9644
-BUF_SIZE = 4096
+PORT = 9644
 
-def main():
-    parser = argparse.ArgumentParser(description="Client for stock trading system")
-    parser.add_argument("--ip", default="127.0.0.1", help="IP address of the server")
-    args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("--ip", default="127.0.0.1")
+args = parser.parse_args()
 
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((args.ip, SERVER_PORT))
+client = socket(AF_INET, SOCK_STREAM)
+client.connect((args.ip, PORT))
 
-    try:
-        while True:
-            msg = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ").strip()
-            if not msg:
-                continue
+while True:
+    msg = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ")
+    client.send((msg + "\n").encode())
+    response = client.recv(4096).decode()
+    print(response)
 
-            client_socket.sendall((msg + "\n").encode())
-            resp = client_socket.recv(BUF_SIZE).decode(errors="replace")
-            print(resp, end="" if resp.endswith("\n") else "\n")
+    if msg.lower() == "quit" or msg.lower() == "shutdown":
+        break
 
-            if msg.upper() in ("QUIT", "SHUTDOWN"):
-                break
-    finally:
-        client_socket.close()
-
-if __name__ == "__main__":
-    main()
+client.close()
