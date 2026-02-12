@@ -1,8 +1,8 @@
 from socket import *
 import argparse
 
-SERVER_PORT = 6969
-BUF_SIZE = 1024
+SERVER_PORT = 9644
+BUF_SIZE = 4096
 
 def main():
     parser = argparse.ArgumentParser(description="Client for stock trading system")
@@ -10,21 +10,19 @@ def main():
     args = parser.parse_args()
 
     client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((args.ip, SERVER_PORT))  # <-- MUST be tuple
+    client_socket.connect((args.ip, SERVER_PORT))
 
     try:
         while True:
-            user_message = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ").strip()
-            if not user_message:
+            msg = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ").strip()
+            if not msg:
                 continue
 
-            # protocol expects newline-terminated commands
-            client_socket.sendall((user_message + "\n").encode())
+            client_socket.sendall((msg + "\n").encode())
+            resp = client_socket.recv(BUF_SIZE).decode(errors="replace")
+            print(resp, end="" if resp.endswith("\n") else "\n")
 
-            server_response = client_socket.recv(BUF_SIZE).decode(errors="replace")
-            print(server_response, end="" if server_response.endswith("\n") else "\n")
-
-            if user_message.upper() in ("QUIT", "SHUTDOWN"):
+            if msg.upper() in ("QUIT", "SHUTDOWN"):
                 break
     finally:
         client_socket.close()
