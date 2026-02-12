@@ -11,12 +11,15 @@ client = socket(AF_INET, SOCK_STREAM)
 client.connect((args.ip, PORT))
 
 while True:
-    msg = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ")
-    client.send((msg + "\n").encode())
-    response = client.recv(4096).decode()
-    print(response)
+    msg = input("Enter command (BUY/SELL/LIST/BALANCE/QUIT/SHUTDOWN): ").strip()
+    if msg == "":
+        continue
 
-    if msg.lower() == "quit" or msg.lower() == "shutdown":
+    client.send((msg + "\n").encode())
+    resp = client.recv(4096).decode(errors="replace")
+    print(resp)
+
+    if msg.lower() in ("quit", "shutdown"):
         break
 
 client.close()
